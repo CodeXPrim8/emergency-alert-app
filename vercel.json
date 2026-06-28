@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "installCommand": "npm install --prefix backend",
+  "buildCommand": "npm run icons --prefix backend",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/api" }
+  ],
+  "functions": {
+    "api/index.js": {
+      "maxDuration": 30,
+      "includeFiles": "backend/**"
+    }
+  }
+}

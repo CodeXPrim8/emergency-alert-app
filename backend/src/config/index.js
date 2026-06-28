@@ -16,9 +16,12 @@ module.exports = {
   httpsPort: parseInt(process.env.HTTPS_PORT, 10) || 3443,
   host: process.env.HOST || '0.0.0.0',
   nodeEnv: process.env.NODE_ENV || 'development',
-  useSqlite: process.env.USE_SQLITE === 'true',
+  useSqlite: process.env.USE_SQLITE === 'true' || Boolean(process.env.VERCEL),
   databaseUrl: process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/emergency_alert',
-  sqlitePath: process.env.SQLITE_PATH || path.join(__dirname, '../../data/emergency_alert.db'),
+  sqlitePath: process.env.SQLITE_PATH
+    || (process.env.VERCEL
+      ? '/tmp/emergency_alert.db'
+      : path.join(__dirname, '../../data/emergency_alert.db')),
   redisUrl: process.env.REDIS_URL || 'redis://localhost:6379',
   jwt: {
     secret: process.env.JWT_SECRET || 'dev-secret-change-in-production',

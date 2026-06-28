@@ -8,7 +8,9 @@ const { authenticate, authenticateUserOrLiveBroadcast } = require('../middleware
 const { canAccessAlertMedia, getAlertOwnerId } = require('../utils/alertAccess');
 
 const router = express.Router({ mergeParams: true });
-const mediaRoot = path.join(__dirname, '../../data/sos-media');
+const mediaRoot = process.env.VERCEL
+  ? '/tmp/sos-media'
+  : path.join(__dirname, '../../data/sos-media');
 
 const upload = multer({
   storage: multer.diskStorage({
