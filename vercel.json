@@ -12,7 +12,7 @@
     "api/index.js": {
       "maxDuration": 30,
       "memory": 1024,
-      "includeFiles": "backend/{src,public,vercel.js,package.json,node_modules/**}"
+      "includeFiles": "backend/{src/**,public/**,vercel.js,package.json,node_modules/sql.js/dist/**,node_modules/@babel/**}"
     }
   }
 }
