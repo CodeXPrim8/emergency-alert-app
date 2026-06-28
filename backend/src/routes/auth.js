@@ -5,11 +5,22 @@ const { signToken } = require('../utils/jwt');
 const { generateOtp, otpExpiresIn } = require('../utils/otp');
 const { getPublicKey } = require('../utils/encryption');
 const { authenticate } = require('../middleware/auth');
-const { authLimiter } = require('../middleware/rateLimit');
+const { loginLimiter } = require('../middleware/rateLimit');
 
 const router = express.Router();
 
-router.post('/register', authLimiter, async (req, res) => {
+function formatUser(row) {
+  return {
+    id: row.id,
+    name: row.name,
+    phone: row.phone,
+    email: row.email,
+    phoneVerified: Boolean(row.phone_verified),
+    emailVerified: Boolean(row.email_verified),
+  };
+}
+
+router.post('/register', async (req, res) => {
   try {
     const { name, phone, email, password, publicKey } = req.body;
 
@@ -38,7 +49,7 @@ router.post('/register', authLimiter, async (req, res) => {
 
     res.status(201).json({
       message: 'Registration successful. Verify your phone/email with the OTP sent.',
-      user,
+      user: formatUser(user),
       token,
       ...(process.env.NODE_ENV !== 'production' && { devOtp: otp }),
     });
@@ -51,7 +62,7 @@ router.post('/register', authLimiter, async (req, res) => {
   }
 });
 
-router.post('/login', authLimiter, async (req, res) => {
+router.post('/login', loginLimiter, async (req, res) => {
   try {
     const { phone, email, password } = req.body;
 
@@ -59,10 +70,9 @@ router.post('/login', authLimiter, async (req, res) => {
       return res.status(400).json({ error: 'Password and phone or email are required' });
     }
 
-    const result = await pool.query(
-      'SELECT * FROM users WHERE phone = $1 OR email = $2',
-      [phone || null, email || null]
-    );
+    const result = phone
+      ? await pool.query('SELECT * FROM users WHERE phone = $1', [phone])
+      : await pool.query('SELECT * FROM users WHERE email = $1', [email]);
 
     if (result.rows.length === 0) {
       return res.status(401).json({ error: 'Invalid credentials' });
@@ -78,14 +88,7 @@ router.post('/login', authLimiter, async (req, res) => {
 
     res.json({
       token,
-      user: {
-        id: user.id,
-        name: user.name,
-        phone: user.phone,
-        email: user.email,
-        phoneVerified: user.phone_verified,
-        emailVerified: user.email_verified,
-      },
+      user: formatUser(user),
     });
   } catch (err) {
     console.error('Login error:', err);
@@ -93,7 +96,7 @@ router.post('/login', authLimiter, async (req, res) => {
   }
 });
 
-router.post('/verify-otp', authLimiter, async (req, res) => {
+router.post('/verify-otp', loginLimiter, async (req, res) => {
   try {
     const { phone, email, otp } = req.body;
 

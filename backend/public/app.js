@@ -871,6 +871,18 @@ $('auth-form').addEventListener('submit', async (e) => {
   const email = $('email').value.trim();
   const password = $('password').value;
 
+  if (!password || (!phone && !email)) {
+    $('auth-error').textContent = 'Enter your phone or email and password.';
+    return;
+  }
+
+  if (isRegister && !$('name').value.trim()) {
+    $('auth-error').textContent = 'Enter your full name to register.';
+    return;
+  }
+
+  $('auth-submit').disabled = true;
+
   try {
     const path = isRegister ? '/auth/register' : '/auth/login';
     const body = isRegister
@@ -884,6 +896,8 @@ $('auth-form').addEventListener('submit', async (e) => {
     await requestCompassPermission();
   } catch (err) {
     $('auth-error').textContent = err.message;
+  } finally {
+    $('auth-submit').disabled = false;
   }
 });
 

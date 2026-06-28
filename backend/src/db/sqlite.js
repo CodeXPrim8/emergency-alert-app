@@ -66,6 +66,7 @@ CREATE INDEX IF NOT EXISTS idx_emergency_contacts_user_id ON emergency_contacts(
 function initSchema() {
   db.exec(SCHEMA);
   migrate();
+  seedDemoUsers();
   console.log('SQLite database ready:', config.sqlitePath);
 }
 
@@ -140,6 +141,30 @@ function migrate() {
     );
     CREATE INDEX IF NOT EXISTS idx_sos_media_alert_id ON sos_media_chunks(alert_id);
   `);
+}
+
+function seedDemoUsers() {
+  const { count } = db.prepare('SELECT COUNT(*) AS count FROM users').get();
+  if (count > 0) return;
+
+  const bcrypt = require('bcryptjs');
+  const passwordHash = bcrypt.hashSync('test123', 12);
+  const demoUsers = [
+    ['Alice', '+1000000001', null],
+    ['Bob', '+1000000002', null],
+    ['Carol', '+1000000003', null],
+  ];
+
+  const insert = db.prepare(
+    `INSERT INTO users (id, name, phone, email, password_hash, phone_verified, email_verified)
+     VALUES (?, ?, ?, ?, ?, 1, 0)`
+  );
+
+  for (const [name, phone, email] of demoUsers) {
+    insert.run(randomUUID(), name, phone, email, passwordHash);
+  }
+
+  console.log('Seeded demo users (phone +1000000001–3, password: test123)');
 }
 
 function preprocessSql(text) {

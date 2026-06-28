@@ -6,7 +6,6 @@ const cors = require('cors');
 const config = require('./config');
 const { connectRedis } = require('./db/redis');
 const { initFirebase } = require('./services/notifications');
-const { generalLimiter } = require('./middleware/rateLimit');
 const { loadOrCreateTlsCredentials } = require('./tls');
 
 const authRoutes = require('./routes/auth');
@@ -24,7 +23,6 @@ function createApp() {
   }));
   app.use(cors());
   app.use(express.json({ limit: '1mb' }));
-  app.use(generalLimiter);
 
   app.get('/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString(), secure: req.secure });
