@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <circle cx="256" cy="256" r="240" fill="#d32f2f"/>
+  <circle cx="256" cy="256" r="240" fill="none" stroke="#fff" stroke-width="8" opacity="0.3"/>
+  <text x="256" y="310" text-anchor="middle" fill="#fff" font-family="system-ui,sans-serif" font-size="200" font-weight="bold">!</text>
+  <text x="256" y="420" text-anchor="middle" fill="#fff" font-family="system-ui,sans-serif" font-size="56" font-weight="bold" letter-spacing="8">SOS</text>
+</svg>

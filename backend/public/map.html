@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="refresh" content="0;url=/?alertId=" id="redirect">
+  <script>
+    const id = new URLSearchParams(location.search).get('alertId');
+    location.replace(id ? '/?alertId=' + id : '/');
+  </script>
+  <title>Redirecting...</title>
+</head>
+<body><p>Opening map in app...</p></body>
+</html>

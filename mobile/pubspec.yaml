@@ -1,0 +1,34 @@
+name: emergency_alert
+description: Cross-platform emergency alert application for Android and iOS.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.2.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  http: ^1.2.2
+  provider: ^6.1.2
+  geolocator: ^13.0.1
+  flutter_secure_storage: ^9.2.2
+  local_auth: ^2.3.0
+  firebase_core: ^3.6.0
+  firebase_auth: ^5.3.1
+  firebase_messaging: ^15.1.3
+  pointycastle: ^3.9.1
+  asn1lib: ^1.5.5
+  uuid: ^4.5.1
+  intl: ^0.19.0
+  permission_handler: ^11.3.1
+  url_launcher: ^6.3.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true

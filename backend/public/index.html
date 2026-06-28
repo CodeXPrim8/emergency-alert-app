@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#d32f2f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SOS Alert">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="description" content="Emergency SOS alerts with live location for nearby users">
+  <title>Emergency Alert</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/icon-192.png">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/map-view.css">
+  <link rel="stylesheet" href="/radar.css">
+  <link rel="stylesheet" href="/hardware-store.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>Emergency Alert</h1>
+      <p id="user-info"></p>
+    </header>
+
+    <div id="gps-radar-host" class="card radar-card"></div>
+    <button type="button" id="install-btn" class="secondary-btn" hidden>Install App</button>
+
+    <section id="auth-section">
+      <div id="sos-active-banner" class="card sos-active-banner" hidden>
+        <strong>SOS active — location sharing</strong>
+        <p>Your live GPS is still being sent for your emergency alert. Sign back in to manage or cancel the alert.</p>
+      </div>
+      <div class="card">
+        <h2 id="auth-title">Sign In</h2>
+        <form id="auth-form">
+          <input type="text" id="name" placeholder="Full name" hidden>
+          <input type="tel" id="phone" placeholder="Phone number" required autocomplete="tel">
+          <input type="email" id="email" placeholder="Email (optional)" autocomplete="email">
+          <input type="password" id="password" placeholder="Password" required minlength="6" autocomplete="current-password">
+          <button type="submit" id="auth-submit">Sign In</button>
+        </form>
+        <button type="button" id="toggle-auth" class="link-btn">Need an account? Register</button>
+        <p id="auth-error" class="error"></p>
+      </div>
+    </section>
+
+    <section id="main-section" hidden>
+      <div id="nearby-alert-banner" class="card alert-banner" hidden></div>
+      <div class="card status-card">
+        <div id="status-indicator" class="status ready">Ready</div>
+        <p id="status-text">Acquiring GPS automatically...</p>
+        <p id="location-coords" class="coords-display" hidden></p>
+      </div>
+
+      <div id="location-prompt" class="card location-prompt" hidden>
+        <h3>📍 GPS</h3>
+        <p id="location-prompt-text">Allow location when your device asks, or tap the button below.</p>
+        <p id="https-warning" class="error" hidden></p>
+        <button type="button" id="enable-gps-btn" class="secondary-btn">Enable GPS Location</button>
+      </div>
+
+      <div id="location-fallback" class="card" hidden>
+        <h3>Location unavailable</h3>
+        <p id="location-fallback-hint" class="hint">If GPS is slow, enter coordinates manually or allow Location permission and try SOS again.</p>
+        <label>Latitude <input type="number" id="manual-lat" step="any" placeholder="40.7128" inputmode="decimal"></label>
+        <label>Longitude <input type="number" id="manual-lng" step="any" placeholder="-74.0060" inputmode="decimal"></label>
+        <button type="button" id="use-manual-location" class="secondary-btn">Use this location</button>
+      </div>
+
+      <button id="sos-btn" class="sos-button" aria-label="Send SOS">
+        <span class="sos-icon">!</span>
+        <span class="sos-label">SOS</span>
+      </button>
+      <p class="hint">Tap SOS to send emergency alert with your location. On phone, use the HTTPS link and allow Location when asked.</p>
+
+      <div id="cancel-panel" class="card" hidden>
+        <h3>Alert Sent</h3>
+        <p id="alert-details"></p>
+        <p id="sos-recorder-status" class="sos-recorder-status">Starting live recording for emergency contacts…</p>
+        <video id="sos-recorder-preview" class="sos-recorder-preview" playsinline muted hidden></video>
+        <button type="button" id="view-own-map" class="secondary-btn" hidden>View Live Map</button>
+        <p>False alarm? Cancel within <strong id="countdown">30</strong> seconds.</p>
+        <button id="cancel-btn" class="secondary-btn">Cancel False Alarm</button>
+      </div>
+
+      <div class="actions">
+        <button id="map-btn" class="secondary-btn">Live Map</button>
+        <button id="contacts-btn" class="secondary-btn">Emergency Contacts</button>
+        <button id="history-btn" class="secondary-btn">Alert History</button>
+        <button id="hardware-btn" class="secondary-btn">Request Hardware</button>
+        <button id="logout-btn" class="link-btn">Sign Out</button>
+      </div>
+
+      <div id="hardware-panel" class="card" hidden>
+        <h3>Request for Hardware</h3>
+        <div id="hardware-store-host"></div>
+      </div>
+
+      <div id="contacts-panel" class="card" hidden>
+        <h3>Emergency Contacts</h3>
+        <ul id="contacts-list"></ul>
+        <form id="contact-form">
+          <input type="text" id="contact-name" placeholder="Name" required>
+          <input type="tel" id="contact-phone" placeholder="Phone">
+          <input type="email" id="contact-email" placeholder="Email">
+          <button type="submit">Add Contact</button>
+        </form>
+      </div>
+
+      <div id="history-panel" class="card" hidden>
+        <h3>Alert History</h3>
+        <ul id="history-list"></ul>
+      </div>
+
+      <p id="main-error" class="error"></p>
+    </section>
+
+    <section id="map-section" hidden>
+      <div class="map-header">
+        <button type="button" id="close-map-btn" class="map-back-btn">← Back</button>
+        <div class="map-header-text">
+          <h2 id="map-title">Live SOS Map</h2>
+          <p id="map-subtitle">Loading...</p>
+        </div>
+        <span id="live-badge" class="live-badge">LIVE</span>
+      </div>
+      <div id="live-map"></div>
+      <div class="map-info-panel">
+        <div class="info-row">
+          <span class="label">Alert from</span>
+          <span id="info-user">—</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Status</span>
+          <span id="info-status">—</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Live position</span>
+          <span id="info-coords">—</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Last updated</span>
+          <span id="info-updated">—</span>
+        </div>
+        <div class="map-legend">
+          <span><i class="dot sos"></i> SOS sender</span>
+          <span><i class="dot you"></i> You</span>
+          <span><i class="dot start"></i> Start point</span>
+        </div>
+        <div id="map-media-panel" class="map-media-panel" hidden>
+          <div class="map-media-head">
+            <strong>Emergency contact feed</strong>
+            <span id="map-media-badge" class="map-media-badge">LIVE AV</span>
+          </div>
+          <p id="map-media-note" class="map-media-note">Live video and audio from SOS — emergency contacts only.</p>
+          <video id="map-media-video" class="map-media-video" controls playsinline></video>
+          <p id="map-media-meta" class="map-media-meta"></p>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="/radar.js"></script>
+  <script src="/hardware-store.js"></script>
+  <script src="/map-view.js"></script>
+  <script src="/sos-recorder.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+backend/node_modules/
+
+# Environment & secrets
+.env
+backend/.env
+keys/
+backend/keys/
+firebase-service-account.json
+backend/firebase-service-account.json
+
+# Local dev data
+backend/data/*.db
+backend/data/*.db-*
+backend/data/sos-media/
+
+# Logs & OS
+*.log
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Build / cache
+dist/
+build/
+.cache/
+
+# Flutter
+mobile/.dart_tool/
+mobile/build/
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies
+mobile/.packages
+mobile/pubspec.lock
