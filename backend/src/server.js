@@ -21,7 +21,7 @@ function createApp() {
   if (process.env.VERCEL) {
     app.use((req, res, next) => {
       const url = req.originalUrl || req.url;
-      if (!url.startsWith('/api') && (url.startsWith('/v1/') || url === '/health')) {
+      if (!url.startsWith('/api') && url.startsWith('/v1/')) {
         req.url = `/api${url}`;
       }
       next();
