@@ -1,9 +1,12 @@
 {
   "version": 2,
+  "framework": null,
   "installCommand": "npm install --prefix backend",
   "buildCommand": "npm run icons --prefix backend",
+  "outputDirectory": "backend/public",
   "rewrites": [
-    { "source": "/(.*)", "destination": "/api" }
+    { "source": "/api/(.*)", "destination": "/api" },
+    { "source": "/health", "destination": "/api" }
   ],
   "functions": {
     "api/index.js": {
