@@ -18,6 +18,16 @@ const os = require('os');
 function createApp() {
   const app = express();
 
+  if (process.env.VERCEL) {
+    app.use((req, res, next) => {
+      const url = req.originalUrl || req.url;
+      if (!url.startsWith('/api') && (url.startsWith('/v1/') || url === '/health')) {
+        req.url = `/api${url}`;
+      }
+      next();
+    });
+  }
+
   app.use(helmet({
     contentSecurityPolicy: config.nodeEnv === 'development' ? false : undefined,
   }));

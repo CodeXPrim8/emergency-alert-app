@@ -729,10 +729,42 @@ async function api(path, options = {}, authToken = null) {
   const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
   const bearer = authToken || token;
   if (bearer) headers.Authorization = `Bearer ${bearer}`;
-  const res = await fetch(`${API}${path}`, { ...options, headers });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || 'Request failed');
+
+  let res;
+  try {
+    res = await fetch(`${API}${path}`, { ...options, headers });
+  } catch {
+    throw new Error('Cannot reach the server. Check your internet connection and reload the page.');
+  }
+
+  const text = await res.text();
+  let data = {};
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      if (!res.ok) {
+        const plain = text.replace(/\s+/g, ' ').trim();
+        throw new Error(plain || `Server error (${res.status})`);
+      }
+    }
+  }
+
+  if (!res.ok) {
+    throw new Error(data.error || data.message || `Server error (${res.status})`);
+  }
   return data;
+}
+
+function normalizePhone(value) {
+  const trimmed = String(value || '').trim();
+  if (!trimmed) return '';
+  const compact = trimmed.replace(/[\s()-]/g, '');
+  if (compact.startsWith('+')) return compact;
+  const digits = compact.replace(/\D/g, '');
+  if (digits.length === 10) return `+1${digits}`;
+  if (digits.length === 11 && digits.startsWith('1')) return `+${digits}`;
+  return `+${digits}`;
 }
 
 function showAuth(options = {}) {
@@ -867,7 +899,7 @@ $('toggle-auth').addEventListener('click', () => {
 $('auth-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   $('auth-error').textContent = '';
-  const phone = $('phone').value.trim();
+  const phone = normalizePhone($('phone').value);
   const email = $('email').value.trim();
   const password = $('password').value;
 
