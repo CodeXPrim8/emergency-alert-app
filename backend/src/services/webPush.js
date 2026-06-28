@@ -3,37 +3,48 @@ const path = require('path');
 const webpush = require('web-push');
 const config = require('../config');
 
-const VAPID_PATH = path.join(__dirname, '../../keys/vapid.json');
+const VAPID_PATH = process.env.VERCEL
+  ? '/tmp/vapid.json'
+  : path.join(__dirname, '../../keys/vapid.json');
+
+let vapidKeys;
 
 function loadOrCreateVapidKeys() {
+  if (vapidKeys) return vapidKeys;
+
   if (fs.existsSync(VAPID_PATH)) {
-    return JSON.parse(fs.readFileSync(VAPID_PATH, 'utf8'));
+    vapidKeys = JSON.parse(fs.readFileSync(VAPID_PATH, 'utf8'));
+    return vapidKeys;
   }
 
-  const keysDir = path.dirname(VAPID_PATH);
-  if (!fs.existsSync(keysDir)) {
-    fs.mkdirSync(keysDir, { recursive: true });
+  vapidKeys = webpush.generateVAPIDKeys();
+
+  try {
+    const keysDir = path.dirname(VAPID_PATH);
+    if (!fs.existsSync(keysDir)) {
+      fs.mkdirSync(keysDir, { recursive: true });
+    }
+    fs.writeFileSync(VAPID_PATH, JSON.stringify(vapidKeys, null, 2));
+    console.log('Web Push VAPID keys generated');
+  } catch (err) {
+    console.warn('VAPID keys kept in memory only:', err.message);
   }
 
-  const keys = webpush.generateVAPIDKeys();
-  fs.writeFileSync(VAPID_PATH, JSON.stringify(keys, null, 2));
-  console.log('Web Push VAPID keys generated');
-  return keys;
+  return vapidKeys;
 }
 
-const vapidKeys = loadOrCreateVapidKeys();
-
-webpush.setVapidDetails(
-  config.vapidSubject,
-  vapidKeys.publicKey,
-  vapidKeys.privateKey
-);
+function ensureVapidConfigured() {
+  const keys = loadOrCreateVapidKeys();
+  webpush.setVapidDetails(config.vapidSubject, keys.publicKey, keys.privateKey);
+}
 
 function getVapidPublicKey() {
-  return vapidKeys.publicKey;
+  ensureVapidConfigured();
+  return loadOrCreateVapidKeys().publicKey;
 }
 
 async function sendWebPush(subscription, payload) {
+  ensureVapidConfigured();
   try {
     await webpush.sendNotification(subscription, JSON.stringify(payload));
     return true;
