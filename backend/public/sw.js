@@ -1,4 +1,4 @@
-const CACHE = 'emergency-alert-v30';
+const CACHE = 'emergency-alert-v31';
 const SHELL = ['/', '/index.html', '/app.js', '/supabase-client.js', '/map-view.js', '/radar.js', '/hardware-store.js', '/sos-recorder.js', '/styles.css', '/map-view.css', '/radar.css', '/hardware-store.css', '/manifest.json', '/icon.svg', '/icon-192.png'];
 
 self.addEventListener('install', (event) => {

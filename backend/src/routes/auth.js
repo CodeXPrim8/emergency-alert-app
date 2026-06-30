@@ -6,6 +6,8 @@ const { generateOtp, otpExpiresIn } = require('../utils/otp');
 const { getPublicKey } = require('../utils/encryption');
 const { authenticate } = require('../middleware/auth');
 const { loginLimiter } = require('../middleware/rateLimit');
+const { normalizePhone, normalizeEmail } = require('../utils/phone');
+const { findUserByPhone, findUserByEmail } = require('../utils/userLookup');
 
 const router = express.Router();
 
@@ -22,10 +24,25 @@ function formatUser(row) {
 
 router.post('/register', async (req, res) => {
   try {
-    const { name, phone, email, password, publicKey } = req.body;
+    const { name, phone, email, password, confirmPassword, publicKey } = req.body;
 
     if (!name || !password || (!phone && !email)) {
       return res.status(400).json({ error: 'Name, password, and phone or email are required' });
+    }
+
+    if (confirmPassword !== undefined && password !== confirmPassword) {
+      return res.status(400).json({ error: 'Passwords do not match' });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    }
+
+    const normalizedPhone = normalizePhone(phone);
+    const normalizedEmail = normalizeEmail(email);
+
+    if (!normalizedPhone && !normalizedEmail) {
+      return res.status(400).json({ error: 'Enter a valid phone number or email' });
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
@@ -35,7 +52,7 @@ router.post('/register', async (req, res) => {
       `INSERT INTO users (name, phone, email, password_hash, public_key, otp_code, otp_expires_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING id, name, phone, email, phone_verified, email_verified, created_at`,
-      [name, phone || null, email || null, passwordHash, publicKey || null, otp, otpExpiresIn()]
+      [name.trim(), normalizedPhone, normalizedEmail, passwordHash, publicKey || null, otp, otpExpiresIn()]
     );
 
     const user = result.rows[0];
@@ -70,15 +87,16 @@ router.post('/login', loginLimiter, async (req, res) => {
       return res.status(400).json({ error: 'Password and phone or email are required' });
     }
 
-    const result = phone
-      ? await pool.query('SELECT * FROM users WHERE phone = $1', [phone])
-      : await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    const rawEmail = String(email || '').trim();
+    const rawPhone = String(phone || '').trim();
 
-    if (result.rows.length === 0) {
+    let user = null;
+    if (rawEmail) user = await findUserByEmail(rawEmail);
+    if (!user && rawPhone) user = await findUserByPhone(rawPhone);
+
+    if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
-
-    const user = result.rows[0];
     const valid = await bcrypt.compare(password, user.password_hash);
     if (!valid) {
       return res.status(401).json({ error: 'Invalid credentials' });

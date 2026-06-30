@@ -894,6 +894,8 @@ $('toggle-auth').addEventListener('click', () => {
   $('auth-submit').textContent = isRegister ? 'Register' : 'Sign In';
   $('toggle-auth').textContent = isRegister ? 'Already have an account? Sign In' : 'Need an account? Register';
   $('name').hidden = !isRegister;
+  $('password-confirm').hidden = !isRegister;
+  $('password').autocomplete = isRegister ? 'new-password' : 'current-password';
   $('auth-error').textContent = '';
 });
 
@@ -901,11 +903,22 @@ $('auth-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   $('auth-error').textContent = '';
   const phone = normalizePhone($('phone').value);
-  const email = $('email').value.trim();
+  const email = $('email').value.trim().toLowerCase();
   const password = $('password').value;
+  const confirmPassword = $('password-confirm').value;
 
   if (!password || (!phone && !email)) {
     $('auth-error').textContent = 'Enter your phone or email and password.';
+    return;
+  }
+
+  if (isRegister && password !== confirmPassword) {
+    $('auth-error').textContent = 'Passwords do not match.';
+    return;
+  }
+
+  if (isRegister && password.length < 6) {
+    $('auth-error').textContent = 'Password must be at least 6 characters.';
     return;
   }
 
@@ -919,7 +932,13 @@ $('auth-form').addEventListener('submit', async (e) => {
   try {
     const path = isRegister ? '/auth/register' : '/auth/login';
     const body = isRegister
-      ? { name: $('name').value.trim(), phone: phone || undefined, email: email || undefined, password }
+      ? {
+          name: $('name').value.trim(),
+          phone: phone || undefined,
+          email: email || undefined,
+          password,
+          confirmPassword,
+        }
       : { phone: phone || undefined, email: email || undefined, password };
 
     const data = await api(path, { method: 'POST', body: JSON.stringify(body) });
