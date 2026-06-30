@@ -91,8 +91,8 @@ router.post('/login', loginLimiter, async (req, res) => {
     const rawPhone = String(phone || '').trim();
 
     let user = null;
-    if (rawEmail) user = await findUserByEmail(rawEmail);
-    if (!user && rawPhone) user = await findUserByPhone(rawPhone);
+    if (rawPhone) user = await findUserByPhone(rawPhone);
+    if (!user && rawEmail) user = await findUserByEmail(rawEmail);
 
     if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });

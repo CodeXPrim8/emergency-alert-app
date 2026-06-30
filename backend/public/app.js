@@ -759,11 +759,18 @@ async function api(path, options = {}, authToken = null) {
 function normalizePhone(value) {
   const trimmed = String(value || '').trim();
   if (!trimmed) return '';
-  const compact = trimmed.replace(/[\s()-]/g, '');
+  const compact = trimmed.replace(/[\s().-]/g, '');
   if (compact.startsWith('+')) return compact;
-  const digits = compact.replace(/\D/g, '');
+
+  let digits = compact.replace(/\D/g, '');
+  while (digits.startsWith('0')) digits = digits.slice(1);
+  if (!digits) return '';
+
+  if (digits.startsWith('234') && digits.length >= 12) return `+${digits}`;
+  if (digits.startsWith('1') && digits.length === 11) return `+${digits}`;
+  if (digits.length === 10 && /^[789]/.test(digits)) return `+234${digits}`;
   if (digits.length === 10) return `+1${digits}`;
-  if (digits.length === 11 && digits.startsWith('1')) return `+${digits}`;
+
   return `+${digits}`;
 }
 
