@@ -856,6 +856,7 @@ async function init() {
   setupGpsRadar();
   setupInstallPrompt();
   LiveMap.setupCloseButton();
+  if (window.SupabaseClient) SupabaseClient.init().catch(() => {});
 
   if ('serviceWorker' in navigator) {
     try {

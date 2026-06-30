@@ -1,7 +1,11 @@
 /**
  * Vercel entry — static requires so @vercel/node bundles backend correctly.
  */
-process.env.USE_SQLITE = process.env.USE_SQLITE || 'true';
+if (!process.env.DATABASE_URL) {
+  process.env.USE_SQLITE = process.env.USE_SQLITE || 'true';
+} else {
+  process.env.USE_SQLITE = 'false';
+}
 process.env.NODE_ENV = process.env.NODE_ENV || 'production';
 
 const { connectRedis } = require('./src/db/redis');

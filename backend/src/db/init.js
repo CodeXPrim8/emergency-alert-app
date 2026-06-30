@@ -16,6 +16,9 @@ CREATE TABLE IF NOT EXISTS users (
   email_verified BOOLEAN DEFAULT FALSE,
   otp_code VARCHAR(6),
   otp_expires_at TIMESTAMPTZ,
+  last_latitude DOUBLE PRECISION,
+  last_longitude DOUBLE PRECISION,
+  location_updated_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -34,6 +37,9 @@ CREATE TABLE IF NOT EXISTS alerts (
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   latitude DOUBLE PRECISION NOT NULL,
   longitude DOUBLE PRECISION NOT NULL,
+  live_latitude DOUBLE PRECISION,
+  live_longitude DOUBLE PRECISION,
+  live_updated_at TIMESTAMPTZ,
   alert_type VARCHAR(50) NOT NULL DEFAULT 'sos',
   status VARCHAR(20) NOT NULL DEFAULT 'active',
   device_id VARCHAR(255),
@@ -86,6 +92,18 @@ CREATE TABLE IF NOT EXISTS sos_media_chunks (
 );
 
 CREATE INDEX IF NOT EXISTS idx_sos_media_alert_id ON sos_media_chunks(alert_id);
+
+CREATE TABLE IF NOT EXISTS push_subscriptions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  endpoint TEXT NOT NULL,
+  subscription_json TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(user_id, endpoint)
+);
+
+CREATE INDEX IF NOT EXISTS idx_push_subscriptions_user_id ON push_subscriptions(user_id);
 `;
 
 async function init() {

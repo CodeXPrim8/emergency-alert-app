@@ -16,7 +16,9 @@ module.exports = {
   httpsPort: parseInt(process.env.HTTPS_PORT, 10) || 3443,
   host: process.env.HOST || '0.0.0.0',
   nodeEnv: process.env.NODE_ENV || 'development',
-  useSqlite: process.env.USE_SQLITE === 'true' || Boolean(process.env.VERCEL),
+  useSqlite:
+    process.env.USE_SQLITE === 'true'
+    || (Boolean(process.env.VERCEL) && !process.env.DATABASE_URL),
   databaseUrl: process.env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/emergency_alert',
   sqlitePath: process.env.SQLITE_PATH
     || (process.env.VERCEL
@@ -38,5 +40,12 @@ module.exports = {
   rateLimit: {
     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS, 10) || 900000,
     max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS, 10) || 100,
+  },
+  supabase: {
+    url: process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+    publishableKey:
+      process.env.SUPABASE_PUBLISHABLE_KEY
+      || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+      || '',
   },
 };

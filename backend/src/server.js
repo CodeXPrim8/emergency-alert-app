@@ -56,6 +56,14 @@ function createApp() {
     });
   });
 
+  app.get('/api/v1/supabase-config', (req, res) => {
+    res.json({
+      url: config.supabase.url,
+      publishableKey: config.supabase.publishableKey,
+      configured: Boolean(config.supabase.url && config.supabase.publishableKey),
+    });
+  });
+
   app.use('/api/v1/auth', authRoutes);
   app.use('/api/v1', emergencyRoutes);
   app.use('/api/v1/contacts', contactsRoutes);

@@ -10,10 +10,12 @@
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "db:init": "node src/db/init.js",
+    "db:init:supabase": "node -e \"if(!process.env.DATABASE_URL){console.error('Set DATABASE_URL to your Supabase URI first');process.exit(1)} process.env.USE_SQLITE='false'; require('./src/db/init.js')\"",
     "icons": "node scripts/generate-icons.js",
     "postinstall": "node scripts/generate-icons.js"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.108.2",
     "bcryptjs": "^2.4.3",
     "better-sqlite3": "^12.11.1",
     "cors": "^2.8.5",
